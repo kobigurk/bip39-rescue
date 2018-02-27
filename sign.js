@@ -12,8 +12,15 @@ let seed = bip39.mnemonicToSeed(mnemonic);
 let hdMaster = bitcoin.HDNode.fromSeedBuffer(seed, network);
 let keyPair = hdMaster.derivePath('m/44\'/0\'/0\'/0/' + keyIndex);
 
+let pubKey = keyPair.getPublicKeyBuffer();
+let pubKeyHash = bitcoin.crypto.hash160(pubKey);
+let redeemScript = bitcoin.script.witnessPubKeyHash.output.encode(pubKeyHash);
+let redeemScriptHash = bitcoin.crypto.hash160(redeemScript);
+let scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash);
+let segwitAddress = bitcoin.address.fromOutputScript(scriptPubKey);
+
 let txs = txsRaw.split(',');
-console.log('Sending with mnemonic ' + keyPair.keyPair.toWIF() + ' (' + keyPair.getAddress() + ') to address ' + address + ' with amount ' + amount + ' from txs ' + txs);
+console.log('Sending with WIF ' + keyPair.keyPair.toWIF() + ' (' + segwitAddress + ') to address ' + address + ' with amount ' + amount + ' from txs ' + txs);
 
 let txb = new bitcoin.TransactionBuilder(network);
 
@@ -26,7 +33,9 @@ for (let i = 0; i < txs.length; i++) {
 txb.addOutput(address, parseInt(amount));	
 
 for (let i = 0; i < txs.length; i++) {
-  txb.sign(i, keyPair);
+  let splitTx = txs[i].split('|');
+  let value = parseInt(splitTx[2]);
+  txb.sign(i, keyPair, redeemScript, null, value);
 }
 
 console.log('-------------------');
