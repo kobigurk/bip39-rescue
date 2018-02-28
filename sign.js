@@ -10,7 +10,7 @@ let txsRaw = process.argv[6];
 let network = bitcoin.networks.bitcoin;
 let seed = bip39.mnemonicToSeed(mnemonic);
 let hdMaster = bitcoin.HDNode.fromSeedBuffer(seed, network);
-let keyPair = hdMaster.derivePath('m/44\'/0\'/0\'/0/' + keyIndex);
+let keyPair = hdMaster.derivePath('m/49\'/0\'/0\'/0/' + keyIndex);
 
 let pubKey = keyPair.getPublicKeyBuffer();
 let pubKeyHash = bitcoin.crypto.hash160(pubKey);
